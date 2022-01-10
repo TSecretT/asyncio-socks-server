@@ -11,11 +11,7 @@ class ProxyMan:
         self.server = None
 
     async def start_server(self):
-        server = await self.loop.create_server(
-            lambda: LocalTCP(self.config),
-            self.config.LISTEN_HOST,
-            self.config.LISTEN_PORT,
-        )
+        server = await self.loop.create_server( lambda: LocalTCP(self.config), self.config.LISTEN_HOST, self.config.LISTEN_PORT, )
         self.server = server
 
     async def close_server(self):

@@ -5,7 +5,7 @@ from asyncio_socks_server.config import Config
 
 
 def gen_log_config(config: Config):
-    server_log_level = "DEBUG" if config.DEBUG else "INFO"
+    server_log_level = "DEBUG" if config.DEBUG else "ERROR"
     server_log_formatter = "diagnostic" if config.DEBUG else "generic"
 
     return {

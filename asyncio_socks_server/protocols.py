@@ -21,6 +21,11 @@ from asyncio_socks_server.logger import access_logger, error_logger, logger
 from asyncio_socks_server.utils import get_socks_atyp_from_host
 from asyncio_socks_server.values import SocksAtyp, SocksCommand, SocksRep
 
+current_connections = {
+
+}
+
+total_data_tranfered = 0
 
 class LocalTCP(asyncio.Protocol):
     STAGE_NEGOTIATE = 0
@@ -46,7 +51,12 @@ class LocalTCP(asyncio.Protocol):
                 self.authenticator_cls = cls
 
     def write(self, data):
+        global total_data_tranfered
         if not self.transport.is_closing():
+            # total_data_tranfered += len(data)
+            
+            # print(total_data_tranfered)
+
             self.transport.write(data)
 
     def connection_made(self, transport):
@@ -62,11 +72,7 @@ class LocalTCP(asyncio.Protocol):
         )
 
     @staticmethod
-    def gen_reply(
-        rep: SocksRep,
-        bind_host: str = "0.0.0.0",
-        bind_port: int = 0,
-    ) -> bytes:
+    def gen_reply( rep: SocksRep, bind_host: str = "0.0.0.0", bind_port: int = 0, ) -> bytes:
         """Generate reply for negotiation."""
 
         VER, RSV = b"\x05", b"\x00"
@@ -140,9 +146,7 @@ class LocalTCP(asyncio.Protocol):
 
             # Step 1.2
             # The server selects a method and sends selection message.
-            authenticator = self.authenticator_cls(
-                self.stream_reader, self.transport, self.config
-            )
+            authenticator = self.authenticator_cls( self.stream_reader, self.transport, self.config )
             METHOD = authenticator.select_method(METHODS)
             self.transport.write(b"\x05" + METHOD.to_bytes(1, "big"))
             if METHOD == 0xFF:
@@ -176,9 +180,7 @@ class LocalTCP(asyncio.Protocol):
             if CMD == SocksCommand.CONNECT:
                 try:
                     loop = asyncio.get_event_loop()
-                    task = loop.create_connection(
-                        lambda: RemoteTCP(self, self.config), DST_ADDR, DST_PORT
-                    )
+                    task = loop.create_connection( lambda: RemoteTCP(self, self.config), DST_ADDR, DST_PORT )
                     remote_tcp_transport, remote_tcp = await asyncio.wait_for(task, 5)
                 except ConnectionRefusedError:
                     self.transport.write(self.gen_reply(SocksRep.CONNECTION_REFUSED))
@@ -202,6 +204,12 @@ class LocalTCP(asyncio.Protocol):
                         self.gen_reply(SocksRep.SUCCEEDED, bind_addr, bind_port)
                     )
                     self.stage = self.STAGE_CONNECT
+
+                    # ! Connected
+
+                    # print("Connected")
+                    # current_connections[self.peername[0]] = 1
+                    # print(current_connections)
 
                     self.config.ACCESS_LOG and access_logger.info(
                         f"Established TCP stream between"
@@ -270,6 +278,11 @@ class LocalTCP(asyncio.Protocol):
         self.close()
 
     def close(self):
+
+        # ! Disconnected
+        # current_connections.pop(self.peername[0], None)
+        # print(current_connections)
+
         if self.is_closing:
             return
         self.stage = self.STAGE_DESTROY

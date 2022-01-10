@@ -1,6 +1,7 @@
 from inspect import isclass
 from os import environ
 from typing import Any, Union
+import json
 
 from asyncio_socks_server.utils import load_dict_from_json_file_location, str_to_bool
 from asyncio_socks_server.values import SocksAuthMethod
@@ -16,16 +17,8 @@ BASE_LOGO = """
 01                |─| |─| |                 01
 0                 | |─| |─|                  0"""
 
-DEFAULT_CONFIG = {
-    "LISTEN_HOST": "0.0.0.0",
-    "LISTEN_PORT": 1080,
-    "AUTH_METHOD": SocksAuthMethod.NO_AUTH,
-    "ACCESS_LOG": False,
-    "STRICT": False,
-    "DEBUG": False,
-    "USERS": {},
-}
-
+with open("./config.json", "r", encoding="utf-8") as f:
+    DEFAULT_CONFIG = json.load(f)
 
 class Config(dict):
     LISTEN_HOST: str

@@ -1,0 +1,11 @@
+{
+    "LISTEN_HOST": "0.0.0.0",
+    "LISTEN_PORT": 3785,
+    "AUTH_METHOD": 2,
+    "ACCESS_LOG": false,
+    "STRICT": true,
+    "DEBUG": false,
+    "USERS": {
+        "tsecret": "1337"
+    }
+}
